@@ -39,7 +39,7 @@ pip install mysql-connector-python python-dotenv
 
 ## Database Setup
 
-> ⚠️ The original database was lost during transfer. You will need to recreate it manually.
+> ⚠️ The original database was lost during transfer. Recreated it manually.
 
 Connect to your MySQL server and run the following SQL to set up the required schema:
 
