@@ -2,7 +2,6 @@
 
 A Python-based Library Management System that uses MySQL as the backend database. It allows librarians to manage books, users, borrowing, and returns through a simple command-line interface.
 
----
 
 ## Features
 
@@ -15,7 +14,6 @@ A Python-based Library Management System that uses MySQL as the backend database
 - Return borrowed books
 - Auto-registration for new users on first borrow — seamlessly continues to borrowing without re-entering ID
 
----
 
 ## Tech Stack
 
@@ -24,7 +22,6 @@ A Python-based Library Management System that uses MySQL as the backend database
 - **Connector:** `mysql-connector-python`
 - **Environment Management:** `python-dotenv`
 
----
 
 ## Prerequisites
 
@@ -39,7 +36,6 @@ Install via pip:
 pip install mysql-connector-python python-dotenv
 ```
 
----
 
 ## Database Setup
 
@@ -93,7 +89,6 @@ INSERT INTO library_books VALUES (2, 'To Kill a Mockingbird', 'Fiction', 'Harper
 INSERT INTO users VALUES (101, 'Alice', 0);
 ```
 
----
 
 ## Configuration
 
@@ -114,7 +109,6 @@ DB_NAME=project
 
 > ⚠️ Never share or commit your `.env` file. It is already listed in `.gitignore`.
 
----
 
 ## How to Run
 
@@ -127,7 +121,6 @@ On launch, the program will:
 2. Display the library rules
 3. Show the main menu
 
----
 
 ## Menu Options
 
@@ -141,15 +134,12 @@ On launch, the program will:
 | 6 | Return a book |
 | 7 | Exit |
 
----
 
 ## Notes
 
 - A user can borrow a maximum of **3 books** at a time.
 - If a user is not found during borrowing, they are prompted to register and immediately continue to borrow — no need to re-enter their ID.
 - Book status is automatically updated on borrow (`0`) and return (`1`).
-
----
 
 ## Recent Changes
 
@@ -162,7 +152,6 @@ On launch, the program will:
 | 🐛 **Bug Fix** | Fixed `UnboundLocalError` scope bug in `borrow()` function |
 | 🗄️ **DB Cleanup** | Renamed tables `users1` → `users` and `booking1` → `booking` |
 
----
 
 ## Roadmap
 
@@ -177,8 +166,6 @@ On launch, the program will:
 [ ] Power BI Integration (visual dashboards for book & user analytics)
 ```
 
----
-
 ## Project Structure
 
 ```
@@ -191,7 +178,6 @@ library-management/
 └── README.md
 ```
 
----
 
 ## Author
 
