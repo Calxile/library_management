@@ -39,7 +39,7 @@ pip install mysql-connector-python python-dotenv
 
 ## Database Setup
 
-> ⚠️ The original database was lost during transfer. You will need to recreate it manually.
+> ⚠️ The original database was lost during transfer. Recreated it manually.
 
 Connect to your MySQL server and run the following SQL to set up the required schema:
 
@@ -148,7 +148,7 @@ On launch, the program will:
 | 🔐 **Security** | Removed hardcoded DB credentials — moved to `.env` file using `python-dotenv` |
 | 🛡️ **Git Safety** | Added `.gitignore` to prevent `.env` from being pushed to GitHub |
 | 🔁 **UX Flow** | New users are registered and immediately proceed to borrow without re-entering their ID |
-| 🧠 **Memory** | Replaced recursive `menu()` and `borrow()` calls with iterative `while True` loops |
+| 🧠 **Memory** | Replaced recursive `borrow()` calls with iterative `while True` loops |
 | 🐛 **Bug Fix** | Fixed `UnboundLocalError` scope bug in `borrow()` function |
 | 🗄️ **DB Cleanup** | Renamed tables `users1` → `users` and `booking1` → `booking` |
 
