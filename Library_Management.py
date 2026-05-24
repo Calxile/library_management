@@ -22,9 +22,8 @@ def insert(): # INSERTING BOOKS
     i=int(input("Enter BookID: "))
     b=input("Enter Book Name: ")
     a=input("Enter Author's Name: ")
-    s=1
-    query="INSERT INTO library_books values(%s,%s,%s,%s,%s)"
-    cur.execute(query, (i,b,qu,a,s))
+    query="INSERT INTO library_books (BookID, Book_Name, Genre, Author) values(%s,%s,%s,%s)"
+    cur.execute(query, (i,b,qu,a))
     con.commit()
     print("Inserting Successful \n")
 
@@ -78,44 +77,47 @@ def search(): # SEARCHING BOOKS
             print("Genre Unavailable \n")
 
 def borrow(): # BORROWING BOOKS
-    un=int(input("Enter User ID: ")) # CHECKING WHETHER USER EXIST IN DATABASE IF NOT ENTER NEW USER
+    choice=input("Enter User ID (or press Enter if you are a New User): ") # CHECKING WHETHER USER EXIST IN DATABASE IF NOT ENTER NEW USER
     flag=0
-    query="SELECT * FROM users WHERE UserID=%s"
-    cur.execute(query, (un,))
-    d=cur.fetchone()
-    if d:
-        flag=1
-        print("User Found \n")
-    if flag==1:
-        s="SELECT * FROM users WHERE activity<3 AND UserID=%s"
-        cur.execute(s, (un,))
+    if choice != "":
+        un=int(choice)
+        query="SELECT * FROM users WHERE UserID=%s"
+        cur.execute(query, (un, ))
         d=cur.fetchone()
         if d:
-            b=input("Enter Book to Borrow: ")
-            l="SELECT * FROM library_books WHERE Book_Name=%s AND STATUS=1"
-            cur.execute(l, (b,))
-            f=cur.fetchone()
-            if f:
-                q="UPDATE library_books SET status=0 WHERE Book_Name=%s"
-                cur.execute(q, (b,))
-                w="UPDATE users SET activity=activity+1 WHERE UserID=%s"
-                cur.execute(w, (un,))
-                query="INSERT INTO booking values(%s,%s)"
-                cur.execute(query, (un,b))
-                con.commit()
-                print("Borrowing Successful \n")
+            flag=1
+            print("User Found \n")
+        if flag==1:
+            s="SELECT * FROM users WHERE activity<3 AND UserID=%s"
+            cur.execute(s, (un,))
+            d=cur.fetchone()
+            if d:
+                b=input("Enter Book to Borrow: ")
+                l="SELECT * FROM library_books WHERE Book_Name=%s AND STATUS=1"
+                cur.execute(l, (b,))
+                f=cur.fetchone()
+                if f:
+                    q="UPDATE library_books SET status=0 WHERE Book_Name=%s"
+                    cur.execute(q, (b,))
+                    w="UPDATE users SET activity=activity+1 WHERE UserID=%s"
+                    cur.execute(w, (un,))
+                    query="INSERT INTO booking values(%s,%s)"
+                    cur.execute(query, (un,b))
+                    con.commit()
+                    print("Borrowing Successful \n")
+                else:
+                    print("Book Unavailable \n")
             else:
-                print("Book Unavailable \n")
-        else:
-            print("Activity Limit Reached \n")
-    else:
+                print("Activity Limit Reached \n")
+    if choice == "" or flag == 0: # New User Registration
         print("\nNew User Registration")
         uname=input("Enter Your Name: ")
-        act=0
-        query="INSERT INTO users values(%s,%s,%s)"
-        cur.execute(query, (un,uname,act))
+        query="INSERT INTO users (UserName) values(%s)"
+        cur.execute(query, (uname, ))
         con.commit()
-        print("Registered \n")
+        un = cur.lastrowid # SQL returns the auto-assigned ID
+        print(f"New User Registered! Your User ID is: {un}\n")
+        print("Please remember this ID for future visits.\n")
         b=input("Enter Book Name to Borrow: ")
         l="SELECT * FROM library_books WHERE Book_Name = %s AND STATUS=1"
         cur.execute(l, (b,))
@@ -132,32 +134,63 @@ def borrow(): # BORROWING BOOKS
         
 
 def Return(): # RETURNING BOOKS
-    un=int(input("Enter UsernameID: "))
-    flag=0
-    query="SELECT * FROM users WHERE UserID=%s"
-    cur.execute(query, (un,))
-    d=cur.fetchone()
-    if d:
-        flag=1
-        print("User Found \n")
-    if flag==0:
-        print("User Not Found \n")
-        return
-    b=input("Enter book name which you want to return: ")
-    l="SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
-    cur.execute(l, (un,b))
-    f=cur.fetchone()
-    if f:
-        q="UPDATE library_books SET status=1 WHERE Book_Name=%s"
-        cur.execute(q, (b,))
-        w="UPDATE users SET activity=activity-1 WHERE UserID=%s"
-        cur.execute(w, (un,))
-        query="DELETE FROM booking WHERE UserID=%s AND BookName=%s"
-        cur.execute(query, (un,b))
-        con.commit()
-        print("Return Successful \n")
+    choice = input("Enter User ID or Name: ")
+    if choice.isdigit():
+        un = int(choice)
+        query = "SELECT * FROM users WHERE UserID=%s"
+        cur.execute(query, (un, ))
+        d = cur.fetchone()
+        if d:
+            print("User Found\n")
+        else:
+            print("User Not Found\n")
+            return
+        
+        b = input("Enter the Book Name which you want to return: ")
+        l = "SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
+        cur.execute(l, (un,b))
+        f = cur.fetchone()
+        if f:
+            q = "UPDATE library_books SET status = 1 WHERE Book_Name=%s"
+            cur.execute(q, (b, ))
+            w = "UPDATE users SET activity = activity - 1 WHERE UserID=%s"
+            cur.execute(w, (un, ))
+            d = "DELETE FROM booking WHERE UserID=%s AND BookName=%s"
+            cur.execute(d, (un, b))
+            con.commit()
+            print("Book returned successfull \n")
+        else:
+            print("The Book is not issued by the user\n")
     else:
-        print("The Book is not issued by the User \n")
+        query = "SELECT * FROM users WHERE UserName=%s"
+        cur.execute(query, (choice, ))
+        d = cur.fetchall()
+        if len(d) == 0:
+            print("User Not Found!")
+            return
+        elif len(d) == 1:
+            un = d[0][0] # d[0] is the row tuple, d[0][0] is the UserID
+        else:
+            for i in d:
+                print(f"ID: {i[0]} | Name: {i[1]}")
+            un = int(input("Enter your user ID from the list above: "))
+            
+        
+        b=input("Enter book name which you want to return: ")
+        l="SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
+        cur.execute(l, (un,b))
+        f=cur.fetchone()
+        if f:
+            q="UPDATE library_books SET status=1 WHERE Book_Name=%s"
+            cur.execute(q, (b,))
+            w="UPDATE users SET activity=activity-1 WHERE UserID=%s"
+            cur.execute(w, (un,))
+            query="DELETE FROM booking WHERE UserID=%s AND BookName=%s"
+            cur.execute(query, (un,b))
+            con.commit()
+            print("Return Successful \n")
+        else:
+            print("The Book is not issued by the User \n")
       
 def menu(): # LIBRARY MENU
     while True:
