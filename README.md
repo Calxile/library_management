@@ -2,6 +2,7 @@
 
 A Python-based Library Management System that uses MySQL as the backend database. It allows librarians to manage books, users, borrowing, and returns through a simple command-line interface.
 
+---
 
 ## Features
 
@@ -14,6 +15,7 @@ A Python-based Library Management System that uses MySQL as the backend database
 - Return borrowed books
 - Auto-registration for new users on first borrow — seamlessly continues to borrowing without re-entering ID
 
+---
 
 ## Tech Stack
 
@@ -22,6 +24,7 @@ A Python-based Library Management System that uses MySQL as the backend database
 - **Connector:** `mysql-connector-python`
 - **Environment Management:** `python-dotenv`
 
+---
 
 ## Prerequisites
 
@@ -36,10 +39,11 @@ Install via pip:
 pip install mysql-connector-python python-dotenv
 ```
 
+---
 
 ## Database Setup
 
-> ⚠️ The original database was lost during transfer. Recreated it manually.
+> ⚠️ The original database was lost during transfer. Recreate it manually using the schema below.
 
 Connect to your MySQL server and run the following SQL to set up the required schema:
 
@@ -89,6 +93,7 @@ INSERT INTO library_books VALUES (2, 'To Kill a Mockingbird', 'Fiction', 'Harper
 INSERT INTO users VALUES (101, 'Alice', 0);
 ```
 
+---
 
 ## Configuration
 
@@ -109,6 +114,7 @@ DB_NAME=project
 
 > ⚠️ Never share or commit your `.env` file. It is already listed in `.gitignore`.
 
+---
 
 ## How to Run
 
@@ -121,6 +127,7 @@ On launch, the program will:
 2. Display the library rules
 3. Show the main menu
 
+---
 
 ## Menu Options
 
@@ -134,12 +141,16 @@ On launch, the program will:
 | 6 | Return a book |
 | 7 | Exit |
 
+---
 
 ## Notes
 
 - A user can borrow a maximum of **3 books** at a time.
 - If a user is not found during borrowing, they are prompted to register and immediately continue to borrow — no need to re-enter their ID.
 - Book status is automatically updated on borrow (`0`) and return (`1`).
+- Invalid menu choices loop back to the menu directly without asking "Do you wish to continue".
+
+---
 
 ## Recent Changes
 
@@ -148,23 +159,30 @@ On launch, the program will:
 | 🔐 **Security** | Removed hardcoded DB credentials — moved to `.env` file using `python-dotenv` |
 | 🛡️ **Git Safety** | Added `.gitignore` to prevent `.env` from being pushed to GitHub |
 | 🔁 **UX Flow** | New users are registered and immediately proceed to borrow without re-entering their ID |
-| 🧠 **Memory** | Replaced recursive `borrow()` calls with iterative `while True` loops |
+| 🧠 **Memory** | Replaced all recursive `menu()` and `borrow()` calls with iterative `while True` loops |
 | 🐛 **Bug Fix** | Fixed `UnboundLocalError` scope bug in `borrow()` function |
 | 🗄️ **DB Cleanup** | Renamed tables `users1` → `users` and `booking1` → `booking` |
+| 🔒 **SQL Security** | Replaced all string-formatted queries with parameterized `%s` queries |
+| ✅ **Return Validation** | Return now checks `booking` table to verify user actually borrowed the book |
+| 🎯 **Invalid Choice UX** | Invalid menu input now loops back directly without prompting "Do you wish to continue" |
 
+---
 
 ## Roadmap
 
 ```
 [X] Refactor Registration UX (smooth new user → borrow flow)
-[X] Memory Optimization (removed recursion)
+[X] Memory Optimization (removed recursion, while True loop)
 [X] Scope Bug Fix
 [X] Data Security (.env for DB credentials)
-[ ] Strict Return Validation (verify user actually borrowed the book)
-[ ] Parameterized Queries (prevent SQL injection)
+[X] Strict Return Validation (verify user actually borrowed the book)
+[X] Parameterized Queries (prevent SQL injection)
+[X] Invalid Choice UX Fix (continue on invalid input)
 [ ] Temporal Data (track 14-day borrow due dates)
 [ ] Power BI Integration (visual dashboards for book & user analytics)
 ```
+
+---
 
 ## Project Structure
 
@@ -178,6 +196,7 @@ library-management/
 └── README.md
 ```
 
+---
 
 ## Author
 
