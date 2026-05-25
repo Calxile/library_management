@@ -179,7 +179,18 @@ def Return(): # RETURNING BOOKS
         else:
             print("User Not Found\n")
             return
-        
+
+        issued = "SELECT BookName FROM booking WHERE UserID=%s"
+        cur.execute(issued, (un, ))
+        books = cur.fetchall()
+        if books:
+            print("Books currently borrowed by you:\n ")
+            for book in books:
+                print(f" - {book[0]}")
+        else:
+            print("You have no books to return. \n")
+            return            
+            
         b = input("Enter the Book Name which you want to return: ")
         l = "SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
         cur.execute(l, (un,b))
@@ -209,6 +220,16 @@ def Return(): # RETURNING BOOKS
                 print(f"ID: {i[0]} | Name: {i[1]}")
             un = int(input("Enter your user ID from the list above: "))
             
+        issued = "SELECT BookName FROM booking WHERE UserID=%s"
+        cur.execute(issued, (un, ))
+        books = cur.fetchall()
+        if books:
+            print("Books currently borrowed by you:\n ")
+            for book in books:
+                print(f" - {book[0]}")
+        else:
+            print("You have no books to return.\n ")
+            return
         
         b=input("Enter book name which you want to return: ")
         l="SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
