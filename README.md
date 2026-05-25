@@ -14,6 +14,9 @@ A Python-based Library Management System that uses MySQL as the backend database
 - Borrow books (with a limit of 3 books per user)
 - Return borrowed books
 - Auto-registration for new users on first borrow — seamlessly continues to borrowing without re-entering ID
+- Smart identity lookup — login by User ID or Name during borrow and return
+- Duplicate name handling — shows list with IDs if multiple users share the same name
+- Borrowed books list displayed before returning
 
 ---
 
@@ -63,14 +66,14 @@ CREATE TABLE library_books (
     Book_Name VARCHAR(100),
     Genre VARCHAR(50),
     Author VARCHAR(100),
-    STATUS INT  -- 1 = Available, 0 = Borrowed
+    STATUS INT DEFAULT 1  -- 1 = Available, 0 = Borrowed
 );
 
 -- Stores registered users
 CREATE TABLE users (
-    UserID INT PRIMARY KEY,
-    Name VARCHAR(100),
-    activity INT  -- Tracks number of books currently borrowed (max 3)
+    UserID INT PRIMARY KEY AUTO_INCREMENT,
+    UserName VARCHAR(100),
+    activity INT DEFAULT 0  -- Tracks number of books currently borrowed (max 3)
 );
 
 -- Tracks active borrowings
@@ -87,10 +90,11 @@ You can also insert some sample data to get started:
 INSERT INTO library_rules VALUES (1, 'Maximum 3 books can be borrowed at a time.');
 INSERT INTO library_rules VALUES (2, 'Books must be returned within 14 days.');
 
-INSERT INTO library_books VALUES (1, 'The Great Gatsby', 'Fiction', 'F. Scott Fitzgerald', 1);
-INSERT INTO library_books VALUES (2, 'To Kill a Mockingbird', 'Fiction', 'Harper Lee', 1);
+INSERT INTO library_books (BookID, Book_Name, Genre, Author) VALUES
+(101, 'The Hobbit', 'Fantasy', 'J.R.R. Tolkien'),
+(102, 'Dune', 'Sci-Fi', 'Frank Herbert');
 
-INSERT INTO users VALUES (101, 'Alice', 0);
+INSERT INTO users (UserName) VALUES ('Alice');
 ```
 
 ---
@@ -149,6 +153,11 @@ On launch, the program will:
 - If a user is not found during borrowing, they are prompted to register and immediately continue to borrow — no need to re-enter their ID.
 - Book status is automatically updated on borrow (`0`) and return (`1`).
 - Invalid menu choices loop back to the menu directly without asking "Do you wish to continue".
+- Both borrow and return accept **User ID or Name** as input.
+- If multiple users share the same name, a list is displayed with IDs to pick from.
+- Borrowed books are displayed before asking which book to return.
+- `STATUS` and `activity` default values are handled at the database level.
+- `UserID` is auto-incremented by MySQL — no manual ID entry needed for new users.
 
 ---
 
@@ -165,6 +174,11 @@ On launch, the program will:
 | 🔒 **SQL Security** | Replaced all string-formatted queries with parameterized `%s` queries |
 | ✅ **Return Validation** | Return now checks `booking` table to verify user actually borrowed the book |
 | 🎯 **Invalid Choice UX** | Invalid menu input now loops back directly without prompting "Do you wish to continue" |
+| 🔑 **Smart Login** | Borrow and Return now accept User ID or Name as input |
+| 👥 **Duplicate Name Handling** | Shows list with IDs if multiple users share the same name |
+| 🗂️ **DB Defaults** | `STATUS` and `activity` defaults moved to SQL schema; `UserID` is now AUTO_INCREMENT |
+| 📋 **Borrowed Books Display** | Return function now shows currently borrowed books before asking which to return |
+| 🧹 **Input Sanitization** | Added `.strip()` to all identity inputs to handle accidental whitespace |
 
 ---
 
@@ -178,6 +192,10 @@ On launch, the program will:
 [X] Strict Return Validation (verify user actually borrowed the book)
 [X] Parameterized Queries (prevent SQL injection)
 [X] Invalid Choice UX Fix (continue on invalid input)
+[X] Smart ID/Name Lookup (borrow + return)
+[X] Duplicate Name Handling
+[X] Auto-increment UserID + SQL DEFAULT values
+[X] Input Sanitization (.strip())
 [ ] Temporal Data (track 14-day borrow due dates)
 [ ] Power BI Integration (visual dashboards for book & user analytics)
 ```
