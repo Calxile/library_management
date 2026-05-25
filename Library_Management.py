@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -88,6 +89,7 @@ def borrow(): # BORROWING BOOKS
         else:
             print("User Does Not Exist\n")
             return
+        
         s = "SELECT * FROM users WHERE activity < 3 AND UserID=%s"
         cur.execute(s, (un, ))
         f = cur.fetchone()
@@ -101,10 +103,13 @@ def borrow(): # BORROWING BOOKS
                 cur.execute(q, (b, ))
                 w = "UPDATE users SET activity = activity + 1 WHERE UserID=%s"
                 cur.execute(w, (un, ))
-                query = "INSERT INTO booking values(%s,%s)"
-                cur.execute(query, (un, b))
+                borrow_date = datetime.now().date()
+                query = "INSERT INTO booking values(%s,%s,%s)"
+                cur.execute(query, (un, b, borrow_date))
                 con.commit()
                 print("Borrowing Successful\n")
+                due_date = borrow_date + timedelta(days=14)
+                print(f"Due Date: {due_date.strftime('%d-%b-%Y')}")
             else:
                 print("Book Not Available. Sorry :(\n")
         else:
@@ -127,10 +132,13 @@ def borrow(): # BORROWING BOOKS
             cur.execute(q, (b,))
             w="UPDATE users SET activity = activity + 1 WHERE UserID = %s"
             cur.execute(w, (un,))
-            query="INSERT INTO booking values(%s,%s)"
-            cur.execute(query, (un,b))
+            borrow_date = datetime.now().date()
+            query="INSERT INTO booking values(%s,%s,%s)"
+            cur.execute(query, (un,b, borrow_date))
             con.commit()
             print("Borrowing Successful \n")
+            due_date = borrow_date + timedelta(days=14)
+            print(f"Due Date: {due_date.strftime('%d-%b-%Y')}")
     else:
         query = "SELECT * FROM users WHERE UserName=%s"
         cur.execute(query, (choice, ))
@@ -145,6 +153,7 @@ def borrow(): # BORROWING BOOKS
             for i in d:
                 print(f"ID: {i[0]} | Name: {i[1]}")
             un = int(input("Enter your userID from the above list: "))
+            
         s = "SELECT * FROM users WHERE activity < 3 AND UserID=%s"
         cur.execute(s, (un, ))
         f = cur.fetchone()
@@ -158,10 +167,13 @@ def borrow(): # BORROWING BOOKS
                 cur.execute(q, (b, ))
                 w = "UPDATE users SET activity = activity + 1 WHERE UserID=%s"
                 cur.execute(w, (un, ))
-                query = "INSERT INTO booking values(%s,%s)"
-                cur.execute(query, (un, b))
+                borrow_date = datetime.now().date()
+                query = "INSERT INTO booking values(%s,%s,%s)"
+                cur.execute(query, (un, b, borrow_date))
                 con.commit()
                 print("Borrowing Successful\n")
+                due_date = borrow_date + timedelta(days=14)
+                print(f"Due date: {due_date.strftime('%d-%b-%Y')}")
             else:
                 print("Book Not Available. Sorry :(\n")
         else:
@@ -180,13 +192,15 @@ def Return(): # RETURNING BOOKS
             print("User Not Found\n")
             return
 
-        issued = "SELECT BookName FROM booking WHERE UserID=%s"
+        issued = "SELECT BookName, borrow_date FROM booking WHERE UserID=%s"
         cur.execute(issued, (un, ))
         books = cur.fetchall()
         if books:
             print("Books currently borrowed by you:\n ")
             for book in books:
-                print(f" - {book[0]}")
+                borrow_date = book[1]
+                due_date = borrow_date + timedelta(days=14)
+                print(f" - {book[0]} (Due: {due_date.strftime('%d-%b-%Y')})")
         else:
             print("You have no books to return. \n")
             return            
@@ -196,6 +210,19 @@ def Return(): # RETURNING BOOKS
         cur.execute(l, (un,b))
         f = cur.fetchone()
         if f:
+            # OVERDUE LOGIC 
+            borrow_date = f[2] # borrow_date is the 3rd column in booking table
+            today = datetime.now().date()
+            days_held = (today - borrow_date).days
+            days_overdue = days_held - 14
+            if days_overdue <= 0:
+                print("Returned on time! Thank you.\n")
+            elif days_overdue <= 2:
+                print(f" ⚠️ {days_overdue} day(s) overdue. Please return books on time next time!\n")
+            else:
+                fine = days_overdue * 5
+                print(f" ❌ {days_overdue} days overdue. Fine: ₹{fine}. Please pay at the counter.\n")
+                
             q = "UPDATE library_books SET status = 1 WHERE Book_Name=%s"
             cur.execute(q, (b, ))
             w = "UPDATE users SET activity = activity - 1 WHERE UserID=%s"
@@ -220,22 +247,37 @@ def Return(): # RETURNING BOOKS
                 print(f"ID: {i[0]} | Name: {i[1]}")
             un = int(input("Enter your user ID from the list above: "))
             
-        issued = "SELECT BookName FROM booking WHERE UserID=%s"
+        issued = "SELECT BookName, borrow_date FROM booking WHERE UserID=%s"
         cur.execute(issued, (un, ))
         books = cur.fetchall()
         if books:
             print("Books currently borrowed by you:\n ")
             for book in books:
-                print(f" - {book[0]}")
+                borrow_date = book[1]
+                due_date = borrow_date + timedelta(days=14)
+                print(f" - {book[0]} (Due: {due_date.strftime('%d-%b-%Y')})")
         else:
             print("You have no books to return.\n ")
             return
         
-        b=input("Enter book name which you want to return: ")
+        b=input("Enter Book Name which you want to return: ")
         l="SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
         cur.execute(l, (un,b))
         f=cur.fetchone()
         if f:
+            # OVERDUE LOGIC
+            borrow_date = f[2]
+            today = datetime.now().date()
+            days_held = (today - borrow_date).days
+            days_overdue = days_held - 14
+            if days_overdue <= 0:
+                print("Returned on time! Thank you.\n")
+            elif days_overdue <= 2:
+                print(f" ⚠️ {days_overdue} day(s) overdue. Please return books on time next time!\n")
+            else:
+                fine = days_overdue * 5
+                print(f" ❌ {days_overdue} days overdue. Fine: ₹{fine}. Please pay at the counter.\n")
+            
             q="UPDATE library_books SET status=1 WHERE Book_Name=%s"
             cur.execute(q, (b,))
             w="UPDATE users SET activity=activity-1 WHERE UserID=%s"
