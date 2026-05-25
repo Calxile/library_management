@@ -1,4 +1,4 @@
-Markdown# 📚 Library Management System
+# 📚 Library Management System
 
 A Python-based Library Management System that uses MySQL as the backend database. It allows librarians to manage books, users, borrowing, and returns through a simple, robust command-line interface, complete with built-in financial overdue enforcement and BI analytics routing.
 
