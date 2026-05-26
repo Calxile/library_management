@@ -79,6 +79,8 @@ def search(): # SEARCHING BOOKS
 
 def borrow(): # BORROWING BOOKS
     choice = input("Enter User ID or Name (or press Enter if you are a New User): ").strip() # CHECKING WHETHER USER EXIST IN DATABASE IF NOT ENTER NEW USER
+    un = None
+    # Step 1 - Taking care of un 
     if choice.isdigit():
         un = int(choice)
         query = "SELECT * FROM users WHERE UserID=%s"
@@ -90,30 +92,6 @@ def borrow(): # BORROWING BOOKS
             print("User Does Not Exist\n")
             return
         
-        s = "SELECT * FROM users WHERE activity < 3 AND UserID=%s"
-        cur.execute(s, (un, ))
-        f = cur.fetchone()
-        if f:
-            b = input("Enter Book to Borrow: ")
-            l = "SELECT * FROM  library_books WHERE Book_Name=%s AND Status = 1"
-            cur.execute(l, (b, ))
-            bor = cur.fetchone()
-            if bor:
-                q = "UPDATE library_books SET status = 0 WHERE Book_Name=%s"
-                cur.execute(q, (b, ))
-                w = "UPDATE users SET activity = activity + 1 WHERE UserID=%s"
-                cur.execute(w, (un, ))
-                borrow_date = datetime.now().date()
-                query = "INSERT INTO booking values(%s,%s,%s)"
-                cur.execute(query, (un, b, borrow_date))
-                con.commit()
-                print("Borrowing Successful\n")
-                due_date = borrow_date + timedelta(days=14)
-                print(f"Due Date: {due_date.strftime('%d-%b-%Y')}")
-            else:
-                print("Book Not Available. Sorry :(\n")
-        else:
-            print("Sorry but your activity has reached it's limit, first return some books if you want to borrow some more.\n")
     elif choice == "": # New User Registration
         print("\nNew User Registration")
         uname = input("Enter Your Name: ")
@@ -123,22 +101,7 @@ def borrow(): # BORROWING BOOKS
         un = cur.lastrowid # SQL returns the auto-assigned ID
         print(f"New User Registered! Your User ID is: {un}\n")
         print("Please remember this ID for future visits.\n")
-        b=input("Enter Book Name to Borrow: ")
-        l="SELECT * FROM library_books WHERE Book_Name = %s AND STATUS=1"
-        cur.execute(l, (b,))
-        f=cur.fetchone()
-        if f:
-            q="UPDATE library_books SET status=0 WHERE Book_Name=%s"
-            cur.execute(q, (b,))
-            w="UPDATE users SET activity = activity + 1 WHERE UserID = %s"
-            cur.execute(w, (un,))
-            borrow_date = datetime.now().date()
-            query="INSERT INTO booking values(%s,%s,%s)"
-            cur.execute(query, (un,b, borrow_date))
-            con.commit()
-            print("Borrowing Successful \n")
-            due_date = borrow_date + timedelta(days=14)
-            print(f"Due Date: {due_date.strftime('%d-%b-%Y')}")
+        
     else:
         query = "SELECT * FROM users WHERE UserName=%s"
         cur.execute(query, (choice, ))
@@ -154,15 +117,20 @@ def borrow(): # BORROWING BOOKS
                 print(f"ID: {i[0]} | Name: {i[1]}")
             un = int(input("Enter your userID from the above list: "))
             
-        s = "SELECT * FROM users WHERE activity < 3 AND UserID=%s"
-        cur.execute(s, (un, ))
-        f = cur.fetchone()
-        if f:
-            b = input("Enter Book to Borrow: ")
-            l = "SELECT * FROM  library_books WHERE Book_Name=%s AND Status = 1"
-            cur.execute(l, (b, ))
-            bor = cur.fetchone()
-            if bor:
+    if un is None:
+        return
+
+    # Step 2 - Borrowing books 
+    s = "SELECT * FROM users WHERE activity < 3 AND UserID=%s"
+    cur.execute(s, (un, ))
+    f = cur.fetchone()
+    if f:
+        b = input("Enter Book to Borrow: ")
+        l = "SELECT * FROM  library_books WHERE Book_Name=%s AND Status = 1"
+        cur.execute(l, (b, ))
+        bor = cur.fetchone()
+        if bor:
+            try:
                 q = "UPDATE library_books SET status = 0 WHERE Book_Name=%s"
                 cur.execute(q, (b, ))
                 w = "UPDATE users SET activity = activity + 1 WHERE UserID=%s"
@@ -173,14 +141,20 @@ def borrow(): # BORROWING BOOKS
                 con.commit()
                 print("Borrowing Successful\n")
                 due_date = borrow_date + timedelta(days=14)
-                print(f"Due date: {due_date.strftime('%d-%b-%Y')}")
-            else:
-                print("Book Not Available. Sorry :(\n")
+                print(f"Due Date: {due_date.strftime('%d-%b-%Y')}")
+            except Exception as e:
+                print(f"Sorry, an unexpected error occurred: {e}")
+                con.rollback()
         else:
-            print("Sorry but your activity has reached it's limit, first return some books if you want to borrow some more.\n")
-      
+            print("Book Not Available. Sorry :(\n")
+    else:
+        print("Sorry but your activity has reached it's limit, first return some books if you want to borrow some more.\n")
+                  
 def Return(): # RETURNING BOOKS
     choice = input("Enter User ID or Name: ").strip()
+    un = None
+    
+    # Step 1 - Resolve 'un' only
     if choice.isdigit():
         un = int(choice)
         query = "SELECT * FROM users WHERE UserID=%s"
@@ -191,48 +165,6 @@ def Return(): # RETURNING BOOKS
         else:
             print("User Not Found\n")
             return
-
-        issued = "SELECT BookName, borrow_date FROM booking WHERE UserID=%s"
-        cur.execute(issued, (un, ))
-        books = cur.fetchall()
-        if books:
-            print("Books currently borrowed by you:\n ")
-            for book in books:
-                borrow_date = book[1]
-                due_date = borrow_date + timedelta(days=14)
-                print(f" - {book[0]} (Due: {due_date.strftime('%d-%b-%Y')})")
-        else:
-            print("You have no books to return. \n")
-            return            
-            
-        b = input("Enter the Book Name which you want to return: ")
-        l = "SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
-        cur.execute(l, (un,b))
-        f = cur.fetchone()
-        if f:
-            # OVERDUE LOGIC 
-            borrow_date = f[2] # borrow_date is the 3rd column in booking table
-            today = datetime.now().date()
-            days_held = (today - borrow_date).days
-            days_overdue = days_held - 14
-            if days_overdue <= 0:
-                print("Returned on time! Thank you.\n")
-            elif days_overdue <= 2:
-                print(f" ⚠️ {days_overdue} day(s) overdue. Please return books on time next time!\n")
-            else:
-                fine = days_overdue * 5
-                print(f" ❌ {days_overdue} days overdue. Fine: ₹{fine}. Please pay at the counter.\n")
-                
-            q = "UPDATE library_books SET status = 1 WHERE Book_Name=%s"
-            cur.execute(q, (b, ))
-            w = "UPDATE users SET activity = activity - 1 WHERE UserID=%s"
-            cur.execute(w, (un, ))
-            query = "DELETE FROM booking WHERE UserID=%s AND BookName=%s"
-            cur.execute(query, (un, b))
-            con.commit()
-            print("Book returned successful \n")
-        else:
-            print("The Book is not issued by the user\n")
     else:
         query = "SELECT * FROM users WHERE UserName=%s"
         cur.execute(query, (choice, ))
@@ -241,53 +173,62 @@ def Return(): # RETURNING BOOKS
             print("User Not Found!")
             return
         elif len(d) == 1:
+            print("User Found") 
             un = d[0][0] # d[0] is the row tuple, d[0][0] is the UserID
         else:
             for i in d:
                 print(f"ID: {i[0]} | Name: {i[1]}")
             un = int(input("Enter your user ID from the list above: "))
+    if un is None:
+        return
+
+    # Step 2 - Everything below runs ONCE for both branches 
+
+    issued = "SELECT BookName, borrow_date FROM booking WHERE UserID=%s"
+    cur.execute(issued, (un, ))
+    books = cur.fetchall()
+    if books:
+        print("Books currently borrowed by you:\n ")
+        for book in books:
+            borrow_date = book[1]
+            due_date = borrow_date + timedelta(days=14)
+            print(f" - {book[0]} (Due: {due_date.strftime('%d-%b-%Y')})")
+    else:
+        print("You have no books to return. \n")
+        return            
             
-        issued = "SELECT BookName, borrow_date FROM booking WHERE UserID=%s"
-        cur.execute(issued, (un, ))
-        books = cur.fetchall()
-        if books:
-            print("Books currently borrowed by you:\n ")
-            for book in books:
-                borrow_date = book[1]
-                due_date = borrow_date + timedelta(days=14)
-                print(f" - {book[0]} (Due: {due_date.strftime('%d-%b-%Y')})")
+    b = input("Enter the Book Name which you want to return: ")
+    l = "SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
+    cur.execute(l, (un,b))
+    f = cur.fetchone()
+    if f:
+        # OVERDUE LOGIC 
+        borrow_date = f[2] # borrow_date is the 3rd column in booking table
+        today = datetime.now().date()
+        days_held = (today - borrow_date).days
+        days_overdue = days_held - 14
+        if days_overdue <= 0:
+            print("Returned on time! Thank you.\n")
+        elif days_overdue <= 2:
+            print(f" ⚠️ {days_overdue} day(s) overdue. Please return books on time next time!\n")
         else:
-            print("You have no books to return.\n ")
-            return
-        
-        b=input("Enter Book Name which you want to return: ")
-        l="SELECT * FROM booking WHERE UserID=%s AND BookName=%s"
-        cur.execute(l, (un,b))
-        f=cur.fetchone()
-        if f:
-            # OVERDUE LOGIC
-            borrow_date = f[2]
-            today = datetime.now().date()
-            days_held = (today - borrow_date).days
-            days_overdue = days_held - 14
-            if days_overdue <= 0:
-                print("Returned on time! Thank you.\n")
-            elif days_overdue <= 2:
-                print(f" ⚠️ {days_overdue} day(s) overdue. Please return books on time next time!\n")
-            else:
-                fine = days_overdue * 5
-                print(f" ❌ {days_overdue} days overdue. Fine: ₹{fine}. Please pay at the counter.\n")
-            
-            q="UPDATE library_books SET status=1 WHERE Book_Name=%s"
-            cur.execute(q, (b,))
-            w="UPDATE users SET activity=activity-1 WHERE UserID=%s"
-            cur.execute(w, (un,))
-            query="DELETE FROM booking WHERE UserID=%s AND BookName=%s"
-            cur.execute(query, (un,b))
+            fine = (days_overdue - 2) * 5
+            print(f" ❌ {days_overdue} days overdue. Fine: ₹{fine}. Please pay at the counter.\n")
+
+        try:
+            q = "UPDATE library_books SET status = 1 WHERE Book_Name=%s"
+            cur.execute(q, (b, ))
+            w = "UPDATE users SET activity = activity - 1 WHERE UserID=%s"
+            cur.execute(w, (un, ))
+            query = "DELETE FROM booking WHERE UserID=%s AND BookName=%s"
+            cur.execute(query, (un, b))
             con.commit()
-            print("Return Successful \n")
-        else:
-            print("The Book is not issued by the User \n")
+            print("Book returned successful \n")
+        except Exception as e:
+            print(f"Sorry an unexpected error occurred: {e}")
+            con.rollback()
+    else:
+        print("The Book is not issued by the user\n")
       
 def menu(): # LIBRARY MENU
     while True:
@@ -315,6 +256,8 @@ def menu(): # LIBRARY MENU
                 Return()
             elif choice==7:
                 print("THANK YOU FOR VISITING LIBRARY")
+                cur.close()
+                con.close()
                 break
             else:
                 print("Invalid choice \n")
@@ -323,6 +266,8 @@ def menu(): # LIBRARY MENU
             ch=input("Do you wish to continue (y/n) ")
             if ch == 'n':
                 print("Thank you for visiting the Library")
+                cur.close()
+                con.close()
                 break
     
 #MAIN PROGRAM
