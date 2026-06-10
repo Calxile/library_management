@@ -1,10 +1,29 @@
 # 📚 Library Management System
 
-A Python-based Library Management System that uses MySQL as the backend database. It allows librarians to manage books, users, borrowing, and returns through a simple command-line interface — complete with due date tracking, overdue fine calculation, transaction safety, and a Power BI analytics dashboard.
+A Python-based Library Management System using MySQL as the backend database. Librarians can manage books, users, borrowing, and returns through a simple command-line interface — with due date tracking, overdue fine calculation, transaction safety, and a live Power BI analytics dashboard.
 
 ---
 
-## Features
+## 📊 Power BI Dashboard
+
+![Power BI Dashboard](dashboard.png)
+
+> Live MySQL connection — all visuals update in real time as borrowing activity occurs.
+
+| Visual | Description |
+|--------|-------------|
+| Total Books | KPI card — total books in the system |
+| Active Bookings | KPI card — books currently borrowed |
+| Total Users | KPI card — registered users |
+| Count of Books by Genre | Pie chart — genre distribution across the library |
+| Book Availability by Genre | Stacked bar — available vs borrowed per genre |
+| Monthly Borrowing Trend | Line chart — borrowing activity across months |
+| User Activity | Bar chart — books currently borrowed per user |
+| Wall of Shame ⚠️ | Table — overdue books with days overdue and fine amount |
+
+---
+
+## ✨ Features
 
 - Display library rules on startup
 - View all available books
@@ -23,14 +42,13 @@ A Python-based Library Management System that uses MySQL as the backend database
 - Borrowed books list with due dates displayed before returning
 - Transaction rollback on database errors — tables never get out of sync
 - Safe connection teardown on exit
-- Power BI dashboard with live MySQL connection for real-time analytics
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
-|---|---|
+|-------|------------|
 | Language | Python 3 |
 | Database | MySQL |
 | Connector | mysql-connector-python |
@@ -39,14 +57,12 @@ A Python-based Library Management System that uses MySQL as the backend database
 
 ---
 
-## Prerequisites
+## ⚙️ Prerequisites
 
 - Python 3.x
 - MySQL Server
 - `mysql-connector-python` package
 - `python-dotenv` package
-
-Install via pip:
 
 ```bash
 pip install mysql-connector-python python-dotenv
@@ -54,11 +70,11 @@ pip install mysql-connector-python python-dotenv
 
 ---
 
-## Database Setup
+## 🗄️ Database Setup
 
 > ⚠️ The original database was lost during transfer. Recreate it manually using the schema below.
 
-Connect to your MySQL server and run the following SQL to set up the required schema:
+Connect to your MySQL server and run the following SQL:
 
 ```sql
 CREATE DATABASE projects;
@@ -117,18 +133,16 @@ INSERT INTO users (UserName) VALUES ('Alice');
 
 ---
 
-## Configuration
+## 🔐 Configuration
 
-Database credentials are managed via a `.env` file to keep sensitive information out of the source code.
+Database credentials are managed via a `.env` file to keep sensitive information out of source code.
 
-### 1. Copy the example env file
-
+**1. Copy the example env file**
 ```bash
 cp .env.example .env
 ```
 
-### 2. Fill in your credentials in `.env`
-
+**2. Fill in your credentials in `.env`**
 ```
 DB_HOST=localhost
 DB_USER=root
@@ -140,24 +154,18 @@ DB_NAME=projects
 
 ---
 
-## How to Run
+## ▶️ How to Run
 
 ```bash
 python Library_Management.py
 ```
 
-On launch, the program will:
+On launch, the program will connect to the MySQL database, display the library rules, and show the main menu.
 
-1. Connect to the MySQL database
-2. Display the library rules
-3. Show the main menu
-
----
-
-## Menu Options
+### Menu Options
 
 | Option | Action |
-|---|---|
+|--------|--------|
 | 1 | Display all books |
 | 2 | Insert a new book |
 | 3 | Delete a book |
@@ -168,12 +176,12 @@ On launch, the program will:
 
 ---
 
-## Overdue Fine System
+## 💰 Overdue Fine System
 
-When returning a book, the system automatically calculates how long it was held and responds with one of three outcomes:
+When returning a book, the system automatically calculates how long it was held:
 
 | Condition | Response |
-|---|---|
+|-----------|----------|
 | Returned within 14 days | ✅ "Returned on time! Thank you." |
 | 1–2 days overdue | ⚠️ Grace period warning, no fine |
 | 3+ days overdue | ❌ Fine displayed — ₹5 per day after the 2-day grace period |
@@ -184,30 +192,7 @@ The librarian is informed of the fine amount and collects it manually. The retur
 
 ---
 
-## Power BI Dashboard
-
-The project includes a Power BI dashboard connected live to the MySQL database, providing real-time library analytics.
-
-### Visuals included
-
-| Chart | Description |
-|---|---|
-| Total Books | KPI card — total books in the system |
-| Active Bookings | KPI card — books currently borrowed |
-| Total Users | KPI card — registered users |
-| Count of Books by Genre | Pie chart — genre distribution across the library |
-| Book Availability by Genre | Stacked bar — available vs borrowed per genre |
-| Monthly Borrowing Trend | Line chart — borrowing activity across months |
-| User Activity | Bar chart — books currently borrowed per user |
-| Wall of Shame | Table — overdue books with days overdue and fine amount |
-
-### Dashboard preview
-
-![Power BI Dashboard](dashboard.png)
-
----
-
-## Notes
+## 📝 Notes
 
 - A user can borrow a maximum of 3 books at a time.
 - If a user is not found during borrowing, they are prompted to register and immediately continue to borrow — no need to re-enter their ID.
@@ -218,16 +203,16 @@ The project includes a Power BI dashboard connected live to the MySQL database, 
 - Borrowed books with due dates are displayed before asking which book to return.
 - `status` and `activity` default values are handled at the database level.
 - `UserID` is auto-incremented by MySQL — no manual ID entry needed for new users.
-- All database transactions are wrapped in `try/except` with `con.rollback()` on failure — tables never get out of sync.
-- Cursor and connection are safely closed on both exit paths (menu option 7 and 'n' prompt).
+- All database transactions are wrapped in `try/except` with `con.rollback()` on failure.
+- Cursor and connection are safely closed on both exit paths.
 - `return_date` is stored in the booking table — historical borrowing data is never deleted, keeping Power BI trends accurate over time.
 
 ---
 
-## Recent Changes
+## 🔄 Recent Changes
 
 | Area | Change |
-|---|---|
+|------|--------|
 | 🔐 Security | Removed hardcoded DB credentials — moved to `.env` file using `python-dotenv` |
 | 🛡️ Git Safety | Added `.gitignore` to prevent `.env` from being pushed to GitHub |
 | 🔁 UX Flow | New users are registered and immediately proceed to borrow without re-entering their ID |
@@ -244,52 +229,52 @@ The project includes a Power BI dashboard connected live to the MySQL database, 
 | 🧹 Input Sanitization | Added `.strip()` to all identity inputs to handle accidental whitespace |
 | ⏰ Temporal Data | Added `borrow_date` and `due_date` to booking table — calculated once on borrow and stored |
 | 💰 Fine System | 3-tier overdue logic: on time / grace period warning / fine at ₹5 per day after grace |
-| 🔁 Code Refactor | Flattened `borrow()` and `Return()` into unified Step 1 (identity resolution) + Step 2 (transaction) pipelines |
+| 🔁 Code Refactor | Flattened `borrow()` and `Return()` into unified Step 1 + Step 2 pipelines |
 | 🛡️ DB Safety | Wrapped all transactions in `try/except Exception` with `con.rollback()` on failure |
 | 🔌 Connection Cleanup | `cur.close()` and `con.close()` called safely on both exit paths |
-| 🗃️ History Preservation | Replaced `DELETE FROM booking` with `UPDATE booking SET return_date` — full borrowing history retained for Power BI |
-| 📊 Power BI Integration | Live MySQL dashboard with genre charts, borrowing trends, user activity, and Wall of Shame overdue tracker |
+| 🗃️ History Preservation | Replaced `DELETE FROM booking` with `UPDATE booking SET return_date` — full history retained |
+| 📊 Power BI Integration | Live MySQL dashboard with genre charts, borrowing trends, user activity, and Wall of Shame |
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
-- [X] Refactor Registration UX (smooth new user → borrow flow)
-- [X] Memory Optimization (removed recursion, `while True` loop)
-- [X] Scope Bug Fix
-- [X] Data Security (`.env` for DB credentials)
-- [X] Strict Return Validation (verify user actually borrowed the book)
-- [X] Parameterized Queries (prevent SQL injection)
-- [X] Invalid Choice UX Fix (continue on invalid input)
-- [X] Smart ID/Name Lookup (borrow + return)
-- [X] Duplicate Name Handling
-- [X] Auto-increment UserID + SQL DEFAULT values
-- [X] Input Sanitization (`.strip()`)
-- [X] Temporal Data (track 14-day borrow due dates + overdue fine system)
-- [X] Code Refactor (unified Step 1 + Step 2 pipeline in borrow and return)
-- [X] Transaction Safety (`try/except` + `rollback`)
-- [X] Safe Connection Teardown on exit
-- [X] History Preservation (`return_date` — no data loss on return)
-- [X] Power BI Integration (live dashboard with genre, trend, activity, and overdue analytics)
+- [x] Refactor Registration UX
+- [x] Memory Optimization (removed recursion)
+- [x] Scope Bug Fix
+- [x] Data Security (`.env` for DB credentials)
+- [x] Strict Return Validation
+- [x] Parameterized Queries (prevent SQL injection)
+- [x] Invalid Choice UX Fix
+- [x] Smart ID/Name Lookup
+- [x] Duplicate Name Handling
+- [x] Auto-increment UserID + SQL DEFAULT values
+- [x] Input Sanitization
+- [x] Temporal Data (14-day borrow + overdue fine system)
+- [x] Code Refactor (unified Step 1 + Step 2 pipeline)
+- [x] Transaction Safety (try/except + rollback)
+- [x] Safe Connection Teardown on exit
+- [x] History Preservation (return_date — no data loss)
+- [x] Power BI Integration (live dashboard)
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 library-management/
 │
-├── Library_Management.py           # Main application file
+├── Library_Management.py              # Main application file
 ├── Library_Management_Dashboard.pbix  # Power BI dashboard file
-├── dashboard.png                   # Dashboard preview image
-├── .env                            # Your local credentials (never commit this)
-├── .env.example                    # Template for environment variables
-├── .gitignore                      # Ensures .env is never pushed to GitHub
+├── dashboard.png                      # Dashboard preview image
+├── .env                               # Your local credentials (never commit this)
+├── .env.example                       # Template for environment variables
+├── .gitignore                         # Ensures .env is never pushed to GitHub
 └── README.md
 ```
 
 ---
 
-## Author
+## 👤 Author
 
 **Ayeshkant Ray** — [@Calxile](https://github.com/Calxile)
